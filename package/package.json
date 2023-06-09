@@ -1,6 +1,6 @@
 {
   "name": "matrixutils-js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "JavaScript library for Matrix representation",
   "main": "index.js",
   "scripts": {
@@ -22,5 +22,8 @@
   "homepage": "https://github.com/edumntg/matrix-npm-package#readme",
   "devDependencies": {
     "@types/node": "^20.2.5"
+  },
+  "dependencies": {
+    "assert": "^2.0.0"
   }
 }
