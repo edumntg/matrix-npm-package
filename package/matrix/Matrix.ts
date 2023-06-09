@@ -11,6 +11,10 @@ export class Matrix {
         this.ncols = 0;
     }
 
+    isSquare(): boolean {
+        return this.nrows === this.ncols;
+    }
+
     static rand(rows, columns): Matrix {
         // Create empty array
         let arr: Array<number> = [];
@@ -134,18 +138,18 @@ export class Matrix {
         // Multiply
         let rows: number = copy.nrows;
         for(let i = 0; i < rows; i++) {
-            copy.setrow(i, Matrix.row_kmatmul(copy.getrow(i), k));
+            copy.setRow(i, Matrix.row_kmatmul(copy.getRow(i), k));
         }
 
         return copy;
     }
     
-    getrow(rowIndex: number): Matrix {
+    getRow(rowIndex: number): Matrix {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
-        return Matrix.fromArray(this.arr[rowIndex] as number[]);
+        return Matrix.fromArray([this.arr[rowIndex] as number[]]);
     }
 
-    setrow(rowIndex: number, row: Matrix): void {
+    setRow(rowIndex: number, row: Matrix): void {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
         assert(row instanceof Matrix, "Row parameter must be a Matrix");
 
@@ -155,18 +159,18 @@ export class Matrix {
         }
     }
 
-    getcolumn(columnIndex: number): Matrix {
+    getColumn(columnIndex: number): Matrix {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
-        let column: Array<number | number[]> = [];
+        let column: Matrix = Matrix.zeros(this.nrows, 1);
         // Insert values from column
         for(let i = 0; i < this.nrows; i++) {
-            column.push(this.get(i, columnIndex));
+            column.set(i, 0, this.get(i,columnIndex));
         }
 
-        return Matrix.fromArray(column);
+        return Matrix.fromMatrix(column);
     }
 
-    setcolumn(columnIndex: number, column: Matrix): void {
+    setColumn(columnIndex: number, column: Matrix): void {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         assert(column instanceof Matrix, "Column must be a Matrix object");
 
@@ -279,9 +283,8 @@ export class Matrix {
 
     deleteRow(rowIndex): void {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
-        let arr = this.arr.slice(); // copy the internal array
-        // remove row
-        delete this.arr[rowIndex];
+
+        this.arr.splice(rowIndex, 1);
         this.nrows--;
     }
 
@@ -289,7 +292,7 @@ export class Matrix {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         let arr: Array<number[] | number> = [];
         for(let i = 0; i < this.nrows; i++) {
-            let row: Array<number | number[]> = this.getrow(i).arr;
+            let row: Array<number | number[]> = this.getRow(i).arr;
             row.splice(columnIndex, 1);
             arr.push(row as number[]);
         }
@@ -307,8 +310,26 @@ export class Matrix {
         return matrix.det();
     }
 
-    cofactor(i: number, j: number): void {
+    cofactor(i: number, j: number): number {
         //return Math.pow((-1), (row + column)) * this.minor(i, j);
+        assert(this.isSquare(), "Matrix is not square");
+
+        return Math.pow(-1, i+j) * this.minor(i, j);
+    }
+
+    cofactorMatrix(): Matrix {
+        // Generate an empty matrix
+        let matrix = Matrix.zeros(this.nrows, this.ncols);
+        for(let i = 0; i < this.nrows; i++) {
+            let row: Array<number> = [];
+            for(let j = 0; j < this.ncols; j++) {
+                row.push(this.cofactor(i,j));
+            }
+            console.log(Matrix.fromArray(row));
+            matrix.setRow(i, Matrix.fromArray([row]));
+        }
+
+        return matrix;
     }
 
     submatrix(starrow: number, endrow: number, startcol: number, endcol: number): Matrix {
@@ -333,45 +354,15 @@ export class Matrix {
     }
 
     adjoint(): Matrix { 
-        let size: number = this.nrows;
-        // empty matrix
-        let adj: Matrix = Matrix.zeros(size,size);
-        if(size === 1) {
-            adj.set(0,0,1);
-            return adj;
-        }
-        
-        let sign: number = 1;
-        let temp: Matrix = Matrix.zeros(size,size);
-        for(let i = 0; i < size; i++) {
-            for(let j = 0; j < size; j++) {
-                // get cofactor (i,j)
-                //this.cofactor(i,j, temp);
-                // update sign
-                sign = ((i + j) % 2 === 0) ? 1 : -1;
-                adj.set(j,i, sign*temp.submatrix(0,temp.nrows-1,0,temp.ncols-1).det());
-            }
-        }
-
-        return adj;
+        return this.cofactorMatrix().T();
     }
 
     inv(): Matrix | number | null {
         // inverse
-        assert(this.nrows === this.ncols, "Matrix must be square");
+        assert(this.isSquare(), "Matrix must be square");
         assert(this.det() !== 0, "Matrix is singular");
 
-        if(this.nrows === 1) { // sie 1x1
-            return 1.0 / this.get(0,0);
-        } else if(this.nrows === 2) { // 2x2
-            let cofMatrix = Matrix.fromArray([
-                [this.get(1,1), -this.get(0,1)],
-                [-this.get(1,0), this.get(0,0)]
-            ]);
-            return cofMatrix.multiply(1 / this.det());
-        } else { // any other size
-            return this.adjoint().multiply(1.0 / this.det());
-        }
+        return this.adjoint().multiply(1.0 / this.det());
     }
 
     transpose(): Matrix {
@@ -388,4 +379,58 @@ export class Matrix {
     T(): Matrix {
         return this.transpose();
     }
+
+    abs(): Matrix {
+        // Return the same matrix but with all positive values
+        let matrix = Matrix.fromMatrix(this);
+
+        for(let i = 0; i < this.nrows; i++) {
+            for(let j = 0; j < this.ncols; j++) {
+                matrix.set(i, j, Math.abs(this.get(i,j)));
+            }
+        }
+        return matrix;
+    }
+
+    addRow(row: Matrix | number[]): void {
+        assert((row instanceof Matrix ? row.arr[0] as number[] : row).length === this.ncols, "New row must have the same number of columns");
+        this.arr.push((row instanceof Matrix ? row.arr[0] : row) as number[]);
+        this.nrows++;
+    }
+
+    addColumn(column: Matrix | number[]): void {
+        assert((column instanceof Matrix ? column.arr as number[] : column).length === this.nrows, "New column must have the same number of rows");
+        for(let i = 0; i < this.nrows; i++) {
+            let value: number = (column instanceof Matrix ? column.get(i, 0) : column[i][0]);
+            (this.arr[i] as number[]).push(value);
+        }
+        this.ncols++;
+    }
+
+    horzcat(M: Matrix): Matrix {
+        assert(this.nrows === M.nrows, "Both matrices must have the same number of rows for horizontal concatenation");
+        
+        // Create a copy of the current matrix
+        let matrix = Matrix.fromMatrix(this);
+        // Now add the columns of the other matrix
+        for(let i = 0; i < M.ncols; i++) {
+            matrix.addColumn(M.getColumn(i));
+        }
+
+        return matrix;
+    }
+
+    vertcat(M: Matrix): Matrix {
+        assert(this.ncols === M.ncols, "Both matrices must have the same number of columns for vertical concatenation");
+        
+        // Create a copy of the current matrix
+        let matrix = Matrix.fromMatrix(this);
+        // Now add the rows of the other matrix
+        for(let i = 0; i < M.nrows; i++) {
+            matrix.addRow(M.getRow(i));
+        }
+
+        return matrix;
+    }
+
 }

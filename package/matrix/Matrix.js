@@ -8,6 +8,9 @@ var Matrix = /** @class */ (function () {
         this.nrows = 0;
         this.ncols = 0;
     }
+    Matrix.prototype.isSquare = function () {
+        return this.nrows === this.ncols;
+    };
     Matrix.rand = function (rows, columns) {
         // Create empty array
         var arr = [];
@@ -109,11 +112,11 @@ var Matrix = /** @class */ (function () {
         // Multiply
         var rows = copy.nrows;
         for (var i = 0; i < rows; i++) {
-            copy.setrow(i, Matrix.row_kmatmul(copy.getrow(i), k));
+            copy.setrow(i, Matrix.row_kmatmul(copy.getRow(i), k));
         }
         return copy;
     };
-    Matrix.prototype.getrow = function (rowIndex) {
+    Matrix.prototype.getRow = function (rowIndex) {
         (0, assert_1.strict)(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
         return Matrix.fromArray(this.arr[rowIndex]);
     };
@@ -125,14 +128,14 @@ var Matrix = /** @class */ (function () {
             this.set(rowIndex, i, row.get(0, i));
         }
     };
-    Matrix.prototype.getcolumn = function (columnIndex) {
+    Matrix.prototype.getColumn = function (columnIndex) {
         (0, assert_1.strict)(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
-        var column = [];
+        var column = Matrix.zeros(this.nrows, 1);
         // Insert values from column
         for (var i = 0; i < this.nrows; i++) {
-            column.push(this.get(i, columnIndex));
+            column.set(i, 0, this.get(i, columnIndex));
         }
-        return Matrix.fromArray(column);
+        return Matrix.fromMatrix(column);
     };
     Matrix.prototype.setcolumn = function (columnIndex, column) {
         (0, assert_1.strict)(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
@@ -231,16 +234,14 @@ var Matrix = /** @class */ (function () {
     };
     Matrix.prototype.deleteRow = function (rowIndex) {
         (0, assert_1.strict)(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
-        var arr = this.arr.slice(); // copy the internal array
-        // remove row
-        delete this.arr[rowIndex];
+        this.arr.splice(rowIndex, 1);
         this.nrows--;
     };
     Matrix.prototype.deleteColumn = function (columnIndex) {
         (0, assert_1.strict)(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         var arr = [];
         for (var i = 0; i < this.nrows; i++) {
-            var row = this.getrow(i).arr;
+            var row = this.getRow(i).arr;
             row.splice(columnIndex, 1);
             arr.push(row);
         }
@@ -257,6 +258,21 @@ var Matrix = /** @class */ (function () {
     };
     Matrix.prototype.cofactor = function (i, j) {
         //return Math.pow((-1), (row + column)) * this.minor(i, j);
+        (0, assert_1.strict)(this.isSquare(), "Matrix is not square");
+        return Math.pow(-1, i + j) * this.minor(i, j);
+    };
+    Matrix.prototype.cofactorMatrix = function () {
+        // Generate an empty matrix
+        var matrix = Matrix.zeros(this.nrows, this.ncols);
+        for (var i = 0; i < this.nrows; i++) {
+            var row = [];
+            for (var j = 0; j < this.ncols; j++) {
+                row.push(this.cofactor(i, j));
+            }
+            console.log(Matrix.fromArray(row));
+            matrix.setrow(i, Matrix.fromArray([row]));
+        }
+        return matrix;
     };
     Matrix.prototype.submatrix = function (starrow, endrow, startcol, endcol) {
         var rows = (endrow - starrow) + 1;
@@ -275,43 +291,13 @@ var Matrix = /** @class */ (function () {
         return matrix;
     };
     Matrix.prototype.adjoint = function () {
-        var size = this.nrows;
-        // empty matrix
-        var adj = Matrix.zeros(size, size);
-        if (size === 1) {
-            adj.set(0, 0, 1);
-            return adj;
-        }
-        var sign = 1;
-        var temp = Matrix.zeros(size, size);
-        for (var i = 0; i < size; i++) {
-            for (var j = 0; j < size; j++) {
-                // get cofactor (i,j)
-                //this.cofactor(i,j, temp);
-                // update sign
-                sign = ((i + j) % 2 === 0) ? 1 : -1;
-                adj.set(j, i, sign * temp.submatrix(0, temp.nrows - 1, 0, temp.ncols - 1).det());
-            }
-        }
-        return adj;
+        return this.cofactorMatrix().T();
     };
     Matrix.prototype.inv = function () {
         // inverse
-        (0, assert_1.strict)(this.nrows === this.ncols, "Matrix must be square");
+        (0, assert_1.strict)(this.isSquare(), "Matrix must be square");
         (0, assert_1.strict)(this.det() !== 0, "Matrix is singular");
-        if (this.nrows === 1) { // sie 1x1
-            return 1.0 / this.get(0, 0);
-        }
-        else if (this.nrows === 2) { // 2x2
-            var cofMatrix = Matrix.fromArray([
-                [this.get(1, 1), -this.get(0, 1)],
-                [-this.get(1, 0), this.get(0, 0)]
-            ]);
-            return cofMatrix.multiply(1 / this.det());
-        }
-        else { // any other size
-            return this.adjoint().multiply(1.0 / this.det());
-        }
+        return this.adjoint().multiply(1.0 / this.det());
     };
     Matrix.prototype.transpose = function () {
         var transposed = Matrix.zeros(this.ncols, this.nrows);
@@ -324,6 +310,49 @@ var Matrix = /** @class */ (function () {
     };
     Matrix.prototype.T = function () {
         return this.transpose();
+    };
+    Matrix.prototype.abs = function () {
+        // Return the same matrix but with all positive values
+        var matrix = Matrix.fromMatrix(this);
+        for (var i = 0; i < this.nrows; i++) {
+            for (var j = 0; j < this.ncols; j++) {
+                matrix.set(i, j, Math.abs(this.get(i, j)));
+            }
+        }
+        return matrix;
+    };
+    Matrix.prototype.addRow = function (row) {
+        (0, assert_1.strict)((row instanceof Matrix ? row.arr[0] : row).length === this.ncols, "New row must have the same number of columns");
+        this.arr.push((row instanceof Matrix ? row.arr[0] : row));
+        this.nrows++;
+    };
+    Matrix.prototype.addColumn = function (column) {
+        (0, assert_1.strict)((column instanceof Matrix ? column.arr : column).length === this.nrows, "New column must have the same number of rows");
+        for (var i = 0; i < this.nrows; i++) {
+            var value = (column instanceof Matrix ? column.get(i, 0) : column[i][0]);
+            this.arr[i].push(value);
+        }
+        this.ncols++;
+    };
+    Matrix.prototype.horzcat = function (M) {
+        (0, assert_1.strict)(this.nrows === M.nrows, "Both matrices must have the same number of rows for horizontal concatenation");
+        // Create a copy of the current matrix
+        var matrix = Matrix.fromMatrix(this);
+        // Now add the columns of the other matrix
+        for (var i = 0; i < M.ncols; i++) {
+            matrix.addColumn(M.getColumn(i));
+        }
+        return matrix;
+    };
+    Matrix.prototype.vertcat = function (M) {
+        (0, assert_1.strict)(this.ncols === M.ncols, "Both matrices must have the same number of columns for vertical concatenation");
+        // Create a copy of the current matrix
+        var matrix = Matrix.fromMatrix(this);
+        // Now add the rows of the other matrix
+        for (var i = 0; i < M.nrows; i++) {
+            matrix.addRow(M.getRow(i));
+        }
+        return matrix;
     };
     return Matrix;
 }());
