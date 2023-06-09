@@ -1,0 +1,23 @@
+{
+  "name": "matrixutils-js",
+  "version": "1.0.0",
+  "description": "JavaScript library for Matrix representation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edumntg/matrix-npm-package.git"
+  },
+  "keywords": [
+    "Matrix",
+    "Math"
+  ],
+  "author": "Eduardo Montilva",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/edumntg/matrix-npm-package/issues"
+  },
+  "homepage": "https://github.com/edumntg/matrix-npm-package#readme"
+}
