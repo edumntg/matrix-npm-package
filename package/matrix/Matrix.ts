@@ -4,15 +4,73 @@ export class Matrix {
     arr: Array<number | number[]>;
     nrows: number;
     ncols: number;
+    static MIN_DET: number = 1e-9;
 
-    constructor() {
+    constructor(m: null | Matrix | Array<number> | Array<Array<number>>) {
+        if(m instanceof Matrix) {
+            this.construct_fromM(m);
+        } else if(Array.isArray(m)) {
+            this.construct_fromArr(m);
+        } else {
+            this.construct_empty();
+        }
+    }
+
+    private construct_empty(): Matrix {
         this.arr = [];
         this.nrows = 0;
         this.ncols = 0;
+
+        return this;
+    }
+
+    private construct_fromM(m: Matrix): Matrix {
+        // get size of matrix
+        let rows: number = m.nrows;
+        let columns: number = m.ncols;
+
+        // Create an empty matrix
+        let matrix: Matrix = Matrix.zeros(rows, columns);
+
+        // Fill
+        for(let i = 0; i < rows; i++) {
+            for(let j = 0; j < columns; j++) {
+                matrix.set(i,j, m.get(i,j));
+            }
+        }
+
+        this.arr = matrix.arr;
+        this.nrows = matrix.nrows;
+        this.ncols = matrix.ncols;
+        return this;
+    }
+
+    private construct_fromArr(arr: Array<number | number[]>): Matrix {
+        assert(Array.isArray(arr), "Argument must be of array type");
+
+        // get size
+        let rows: number = arr.length;
+        let columns: number = Array.isArray(arr[0]) ? arr[0].length : 1;
+
+        // Now, create a new matrix and set parameters
+        let matrix: Matrix = new Matrix(null);
+        matrix.arr = arr;
+        matrix.nrows = rows;
+        matrix.ncols = columns;
+
+        this.arr = arr;
+        this.nrows = matrix.nrows;
+        this.ncols = matrix.ncols;
+
+        return this;
     }
 
     isSquare(): boolean {
         return this.nrows === this.ncols;
+    }
+
+    isSingular(): boolean {
+        return this.det() <= Matrix.MIN_DET;
     }
 
     static rand(rows, columns): Matrix {
@@ -29,7 +87,7 @@ export class Matrix {
     }
 
     static zeros(rows: number, columns: number): Matrix {
-        let matrix: Matrix = new Matrix();
+        let matrix: Matrix = new Matrix(null);
         matrix.nrows = rows;
         matrix.ncols = columns;
 
@@ -63,7 +121,7 @@ export class Matrix {
         let columns: number = Array.isArray(arr[0]) ? arr[0].length : 1;
 
         // Now, create a new matrix and set parameters
-        let matrix: Matrix = new Matrix();
+        let matrix: Matrix = new Matrix(null);
         matrix.arr = arr;
         matrix.nrows = rows;
         matrix.ncols = columns;
@@ -100,7 +158,7 @@ export class Matrix {
         }
     }
 
-    matmul(m): Matrix {
+    matmul(m: Matrix): Matrix {
         // get shape of each matrix to validate their dimensions
         let rows1: number = this.nrows;
         let cols1: number  = this.ncols;
@@ -143,13 +201,47 @@ export class Matrix {
 
         return copy;
     }
+
+    add(M: Matrix): Matrix {
+        // Check that both matrices have the same size
+        assert(this.size()[0] === M.size()[0] && this.size()[1] === M.size()[1], "Matrices must have the same size");
+
+        // Create a copy of this matrix
+        let result = Matrix.fromMatrix(M);
+        
+        // Now add
+        for(let i = 0; i < this.nrows; i++) {
+            for(let j = 0; j < this.ncols; j++) {
+                result.set(i,j, this.get(i,j) + M.get(i,j));
+            }
+        }
+
+        return result;
+    }
+
+    sub(M: Matrix): Matrix {
+        // Check that both matrices have the same size
+        assert(this.size()[0] === M.size()[0] && this.size()[1] === M.size()[1], "Matrices must have the same size");
+
+        // Create a copy of this matrix
+        let result = Matrix.fromMatrix(M);
+        
+        // Now add
+        for(let i = 0; i < this.nrows; i++) {
+            for(let j = 0; j < this.ncols; j++) {
+                result.set(i,j, this.get(i,j) - M.get(i,j));
+            }
+        }
+
+        return result;
+    }
     
     getRow(rowIndex: number): Matrix {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
         return Matrix.fromArray([this.arr[rowIndex] as number[]]);
     }
 
-    setRow(rowIndex: number, row: Matrix): void {
+    setRow(rowIndex: number, row: Matrix): Matrix {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
         assert(row instanceof Matrix, "Row parameter must be a Matrix");
 
@@ -157,6 +249,8 @@ export class Matrix {
         for(let i = 0; i < this.ncols; i++) {
             this.set(rowIndex, i, row.get(0,i));
         }
+
+        return this;
     }
 
     getColumn(columnIndex: number): Matrix {
@@ -170,7 +264,7 @@ export class Matrix {
         return Matrix.fromMatrix(column);
     }
 
-    setColumn(columnIndex: number, column: Matrix): void {
+    setColumn(columnIndex: number, column: Matrix): Matrix {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         assert(column instanceof Matrix, "Column must be a Matrix object");
 
@@ -178,13 +272,17 @@ export class Matrix {
         for(let i = 0; i < this.nrows; i++) {
             this.set(i, columnIndex, column.get(i, 0));
         }
+
+        return this;
     }
 
-    set(row: number, column: number, value: number): void {
+    set(row: number, column: number, value: number): Matrix {
         assert(typeof(row) === 'number' && row >= 0 && row < this.nrows, "Invalid row index");
         assert(typeof(column) === 'number' && column >= 0 && column < this.ncols, "Invalid column index");
 
         this.arr[row][column] = value;
+
+        return this;
     }
 
     get(row: number, column: number): number {
@@ -281,14 +379,16 @@ export class Matrix {
         return [L, U];
     }
 
-    deleteRow(rowIndex): void {
+    deleteRow(rowIndex): Matrix {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
 
         this.arr.splice(rowIndex, 1);
         this.nrows--;
+
+        return this;
     }
 
-    deleteColumn(columnIndex): void {
+    deleteColumn(columnIndex): Matrix {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         let arr: Array<number[] | number> = [];
         for(let i = 0; i < this.nrows; i++) {
@@ -299,6 +399,8 @@ export class Matrix {
         
         this.arr = arr;
         this.ncols--;
+        
+        return this;
     }
 
     minor(i: number, j: number): number {
@@ -392,19 +494,23 @@ export class Matrix {
         return matrix;
     }
 
-    addRow(row: Matrix | number[]): void {
+    addRow(row: Matrix | number[]): Matrix {
         assert((row instanceof Matrix ? row.arr[0] as number[] : row).length === this.ncols, "New row must have the same number of columns");
         this.arr.push((row instanceof Matrix ? row.arr[0] : row) as number[]);
         this.nrows++;
+
+        return this;
     }
 
-    addColumn(column: Matrix | number[]): void {
+    addColumn(column: Matrix | number[]): Matrix {
         assert((column instanceof Matrix ? column.arr as number[] : column).length === this.nrows, "New column must have the same number of rows");
         for(let i = 0; i < this.nrows; i++) {
             let value: number = (column instanceof Matrix ? column.get(i, 0) : column[i][0]);
             (this.arr[i] as number[]).push(value);
         }
         this.ncols++;
+
+        return this;
     }
 
     horzcat(M: Matrix): Matrix {
