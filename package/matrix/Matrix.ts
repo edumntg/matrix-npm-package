@@ -185,7 +185,7 @@ export class Matrix {
 
     add(M: Matrix): Matrix {
         // Check that both matrices have the same size
-        assert(this.size()[0] === M.size()[0] && this.size()[1] === M.size()[1], "Matrices must have the same size");
+        assert(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
 
         // Create a copy of this matrix
         let result = Matrix.fromMatrix(M);
@@ -202,7 +202,7 @@ export class Matrix {
 
     sub(M: Matrix): Matrix {
         // Check that both matrices have the same size
-        assert(this.size()[0] === M.size()[0] && this.size()[1] === M.size()[1], "Matrices must have the same size");
+        assert(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
 
         // Create a copy of this matrix
         let result = Matrix.fromMatrix(M);
@@ -289,7 +289,11 @@ export class Matrix {
         return matrix;
     }
 
-    size(): Array<number> {
+    size(): number {
+        return this.shape[0]*this.shape[1];
+    }
+
+    shape(): number[] {
         return [this.nrows, this.ncols];
     }
 
