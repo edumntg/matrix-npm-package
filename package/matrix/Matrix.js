@@ -334,7 +334,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         (0, assert_1.strict)(this.isSquare(), "Matrix is not square");
         return Math.pow(-1, i + j) * this.minor(i, j);
     };
-    Matrix.prototype.cofactorMatrix = function () {
+    Matrix.prototype.cof = function () {
         // Generate an empty matrix
         var matrix = Matrix.zeros(this.nrows, this.ncols);
         for (var i = 0; i < this.nrows; i++) {
@@ -346,7 +346,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         }
         return matrix;
     };
-    Matrix.prototype.submatrix = function (starrow, endrow, startcol, endcol) {
+    Matrix.prototype.submat = function (starrow, endrow, startcol, endcol) {
         var rows = (endrow - starrow) + 1;
         var columns = (endcol - startcol) + 1;
         var matrix = Matrix.zeros(rows, columns);
@@ -362,14 +362,14 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         }
         return matrix;
     };
-    Matrix.prototype.adjoint = function () {
-        return this.cofactorMatrix().T();
+    Matrix.prototype.adj = function () {
+        return this.cof().T();
     };
     Matrix.prototype.inv = function () {
         // inverse
         (0, assert_1.strict)(this.isSquare(), "Matrix must be square");
         (0, assert_1.strict)(!this.isSingular(), "Matrix is singular");
-        return this.adjoint().multiply(1.0 / this.det());
+        return this.adj().multiply(1.0 / this.det());
     };
     Matrix.prototype.transpose = function () {
         var transposed = Matrix.zeros(this.ncols, this.nrows);
@@ -427,6 +427,19 @@ var Matrix = exports.Matrix = /** @class */ (function () {
             matrix.addRow(M.getRow(i));
         }
         return matrix;
+    };
+    Matrix.prototype.equals = function (M) {
+        return JSON.stringify(this) === JSON.stringify(M);
+    };
+    Matrix.prototype.map = function (callback) {
+        var arr = __spreadArray([], this.arr, true);
+        for (var i = 0; i < this.nrows; i++) {
+            for (var j = 0; j < this.ncols; j++) {
+                arr[i][j] = callback(arr[i][j]);
+            }
+        }
+        this.arr = arr;
+        return this;
     };
     Matrix.MIN_DET = 1e-9;
     return Matrix;

@@ -402,7 +402,7 @@ export class Matrix {
         return Math.pow(-1, i+j) * this.minor(i, j);
     }
 
-    cofactorMatrix(): Matrix {
+    cof(): Matrix {
         // Generate an empty matrix
         let matrix = Matrix.zeros(this.nrows, this.ncols);
         for(let i = 0; i < this.nrows; i++) {
@@ -416,7 +416,7 @@ export class Matrix {
         return matrix;
     }
 
-    submatrix(starrow: number, endrow: number, startcol: number, endcol: number): Matrix {
+    submat(starrow: number, endrow: number, startcol: number, endcol: number): Matrix {
         let rows: number = (endrow - starrow) + 1;
         let columns: number = (endcol - startcol) + 1;
 
@@ -437,8 +437,8 @@ export class Matrix {
         return matrix;
     }
 
-    adjoint(): Matrix { 
-        return this.cofactorMatrix().T();
+    adj(): Matrix { 
+        return this.cof().T();
     }
 
     inv(): Matrix | number | null {
@@ -446,7 +446,7 @@ export class Matrix {
         assert(this.isSquare(), "Matrix must be square");
         assert(!this.isSingular(), "Matrix is singular");
 
-        return this.adjoint().multiply(1.0 / this.det());
+        return this.adj().multiply(1.0 / this.det());
     }
 
     transpose(): Matrix {
@@ -519,6 +519,21 @@ export class Matrix {
         }
 
         return matrix;
+    }
+
+    equals(M: Matrix): boolean {
+        return JSON.stringify(this) === JSON.stringify(M);
+    }
+
+    map(callback: (x: number) => number): Matrix {
+        let arr = [...this.arr];
+        for(let i = 0; i < this.nrows; i++) {
+            for(let j = 0; j < this.ncols; j++) {
+                arr[i][j] = callback(arr[i][j]);
+            }
+        }
+        this.arr = arr;
+        return this;
     }
 
 }
