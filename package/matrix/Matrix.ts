@@ -25,23 +25,10 @@ export class Matrix {
     }
 
     private construct_fromM(m: Matrix): Matrix {
-        // get size of matrix
-        let rows: number = m.nrows;
-        let columns: number = m.ncols;
 
-        // Create an empty matrix
-        let matrix: Matrix = Matrix.zeros(rows, columns);
-
-        // Fill
-        for(let i = 0; i < rows; i++) {
-            for(let j = 0; j < columns; j++) {
-                matrix.set(i,j, m.get(i,j));
-            }
-        }
-
-        this.arr = matrix.arr;
-        this.nrows = matrix.nrows;
-        this.ncols = matrix.ncols;
+        this.arr = [...m.arr];
+        this.nrows = m.nrows;
+        this.ncols = m.ncols;
         return this;
     }
 
@@ -52,15 +39,9 @@ export class Matrix {
         let rows: number = arr.length;
         let columns: number = Array.isArray(arr[0]) ? arr[0].length : 1;
 
-        // Now, create a new matrix and set parameters
-        let matrix: Matrix = new Matrix(null);
-        matrix.arr = arr;
-        matrix.nrows = rows;
-        matrix.ncols = columns;
-
-        this.arr = arr;
-        this.nrows = matrix.nrows;
-        this.ncols = matrix.ncols;
+        this.arr = [...arr];
+        this.nrows = rows;
+        this.ncols = columns;
 
         return this;
     }
@@ -182,9 +163,9 @@ export class Matrix {
         return matrix;
     }
 
-    static row_kmatmul(row: Matrix, k: number): Matrix {
-        let arr: Array<number> = row.arr.map(x => (x as number) * k);
-        return Matrix.fromArray([arr]);
+    static row_kmatmul(row: number | number[], k: number): number[] {
+        let arr: Array<number> = (row as number[]).map(x => (x as number) * k);
+        return arr;
     }
 
     kmatmul(k: number): Matrix {
@@ -236,41 +217,43 @@ export class Matrix {
         return result;
     }
     
-    getRow(rowIndex: number): Matrix {
+    getRow(rowIndex: number): number | number[] {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
-        return Matrix.fromArray([this.arr[rowIndex] as number[]]);
+        return this.arr[rowIndex];
     }
 
-    setRow(rowIndex: number, row: Matrix): Matrix {
+    setRow(rowIndex: number, row: number[]): Matrix {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
-        assert(row instanceof Matrix, "Row parameter must be a Matrix");
+        assert(Array.isArray(row), "Row parameter must be an array of numbers");
+        assert(this.ncols === row.length, "New row must have the same number of columns")
 
         // set row
         for(let i = 0; i < this.ncols; i++) {
-            this.set(rowIndex, i, row.get(0,i));
+            this.set(rowIndex, i, row[i]);
         }
 
         return this;
     }
 
-    getColumn(columnIndex: number): Matrix {
+    getColumn(columnIndex: number): number | number[] {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
-        let column: Matrix = Matrix.zeros(this.nrows, 1);
+        let column: number[] = [];
         // Insert values from column
         for(let i = 0; i < this.nrows; i++) {
-            column.set(i, 0, this.get(i,columnIndex));
+            column.push(this.get(i,columnIndex));
         }
 
-        return Matrix.fromMatrix(column);
+        return column;
     }
 
-    setColumn(columnIndex: number, column: Matrix): Matrix {
+    setColumn(columnIndex: number, column: number[]): Matrix {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
-        assert(column instanceof Matrix, "Column must be a Matrix object");
+        assert(Array.isArray(column), "Column must be aan array");
+        assert(column.length === this.nrows, "New column must have the same number of rows");
 
         // set column
         for(let i = 0; i < this.nrows; i++) {
-            this.set(i, columnIndex, column.get(i, 0));
+            this.set(i, columnIndex, column[i]);
         }
 
         return this;
@@ -392,7 +375,7 @@ export class Matrix {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         let arr: Array<number[] | number> = [];
         for(let i = 0; i < this.nrows; i++) {
-            let row: Array<number | number[]> = this.getRow(i).arr;
+            let row: Array<number | number[]> = this.getRow(i) as number[];
             row.splice(columnIndex, 1);
             arr.push(row as number[]);
         }
@@ -427,8 +410,7 @@ export class Matrix {
             for(let j = 0; j < this.ncols; j++) {
                 row.push(this.cofactor(i,j));
             }
-            console.log(Matrix.fromArray(row));
-            matrix.setRow(i, Matrix.fromArray([row]));
+            matrix.setRow(i, row);
         }
 
         return matrix;
@@ -462,7 +444,7 @@ export class Matrix {
     inv(): Matrix | number | null {
         // inverse
         assert(this.isSquare(), "Matrix must be square");
-        assert(this.det() !== 0, "Matrix is singular");
+        assert(!this.isSingular(), "Matrix is singular");
 
         return this.adjoint().multiply(1.0 / this.det());
     }
@@ -494,16 +476,16 @@ export class Matrix {
         return matrix;
     }
 
-    addRow(row: Matrix | number[]): Matrix {
-        assert((row instanceof Matrix ? row.arr[0] as number[] : row).length === this.ncols, "New row must have the same number of columns");
+    addRow(row: number | number[]): Matrix {
+        assert((row as number[]).length === this.ncols, "New row must have the same number of columns");
         this.arr.push((row instanceof Matrix ? row.arr[0] : row) as number[]);
         this.nrows++;
 
         return this;
     }
 
-    addColumn(column: Matrix | number[]): Matrix {
-        assert((column instanceof Matrix ? column.arr as number[] : column).length === this.nrows, "New column must have the same number of rows");
+    addColumn(column: number | number[]): Matrix {
+        assert((column as number[]).length === this.nrows, "New column must have the same number of rows");
         for(let i = 0; i < this.nrows; i++) {
             let value: number = (column instanceof Matrix ? column.get(i, 0) : column[i][0]);
             (this.arr[i] as number[]).push(value);

@@ -1,4 +1,13 @@
 "use strict";
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Matrix = void 0;
 var assert_1 = require("assert");
@@ -21,20 +30,9 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         return this;
     };
     Matrix.prototype.construct_fromM = function (m) {
-        // get size of matrix
-        var rows = m.nrows;
-        var columns = m.ncols;
-        // Create an empty matrix
-        var matrix = Matrix.zeros(rows, columns);
-        // Fill
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                matrix.set(i, j, m.get(i, j));
-            }
-        }
-        this.arr = matrix.arr;
-        this.nrows = matrix.nrows;
-        this.ncols = matrix.ncols;
+        this.arr = __spreadArray([], m.arr, true);
+        this.nrows = m.nrows;
+        this.ncols = m.ncols;
         return this;
     };
     Matrix.prototype.construct_fromArr = function (arr) {
@@ -42,14 +40,9 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         // get size
         var rows = arr.length;
         var columns = Array.isArray(arr[0]) ? arr[0].length : 1;
-        // Now, create a new matrix and set parameters
-        var matrix = new Matrix(null);
-        matrix.arr = arr;
-        matrix.nrows = rows;
-        matrix.ncols = columns;
-        this.arr = arr;
-        this.nrows = matrix.nrows;
-        this.ncols = matrix.ncols;
+        this.arr = __spreadArray([], arr, true);
+        this.nrows = rows;
+        this.ncols = columns;
         return this;
     };
     Matrix.prototype.isSquare = function () {
@@ -149,8 +142,8 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         return matrix;
     };
     Matrix.row_kmatmul = function (row, k) {
-        var arr = row.arr.map(function (x) { return x * k; });
-        return Matrix.fromArray([arr]);
+        var arr = row.map(function (x) { return x * k; });
+        return arr;
     };
     Matrix.prototype.kmatmul = function (k) {
         console.assert(typeof (k) === 'number', "Argument must be a constant");
@@ -191,32 +184,34 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     };
     Matrix.prototype.getRow = function (rowIndex) {
         (0, assert_1.strict)(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
-        return Matrix.fromArray([this.arr[rowIndex]]);
+        return this.arr[rowIndex];
     };
     Matrix.prototype.setRow = function (rowIndex, row) {
         (0, assert_1.strict)(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
-        (0, assert_1.strict)(row instanceof Matrix, "Row parameter must be a Matrix");
+        (0, assert_1.strict)(Array.isArray(row), "Row parameter must be an array of numbers");
+        (0, assert_1.strict)(this.ncols === row.length, "New row must have the same number of columns");
         // set row
         for (var i = 0; i < this.ncols; i++) {
-            this.set(rowIndex, i, row.get(0, i));
+            this.set(rowIndex, i, row[i]);
         }
         return this;
     };
     Matrix.prototype.getColumn = function (columnIndex) {
         (0, assert_1.strict)(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
-        var column = Matrix.zeros(this.nrows, 1);
+        var column = [];
         // Insert values from column
         for (var i = 0; i < this.nrows; i++) {
-            column.set(i, 0, this.get(i, columnIndex));
+            column.push(this.get(i, columnIndex));
         }
-        return Matrix.fromMatrix(column);
+        return column;
     };
     Matrix.prototype.setColumn = function (columnIndex, column) {
         (0, assert_1.strict)(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
-        (0, assert_1.strict)(column instanceof Matrix, "Column must be a Matrix object");
+        (0, assert_1.strict)(Array.isArray(column), "Column must be aan array");
+        (0, assert_1.strict)(column.length === this.nrows, "New column must have the same number of rows");
         // set column
         for (var i = 0; i < this.nrows; i++) {
-            this.set(i, columnIndex, column.get(i, 0));
+            this.set(i, columnIndex, column[i]);
         }
         return this;
     };
@@ -318,7 +313,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         (0, assert_1.strict)(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         var arr = [];
         for (var i = 0; i < this.nrows; i++) {
-            var row = this.getRow(i).arr;
+            var row = this.getRow(i);
             row.splice(columnIndex, 1);
             arr.push(row);
         }
@@ -347,8 +342,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
             for (var j = 0; j < this.ncols; j++) {
                 row.push(this.cofactor(i, j));
             }
-            console.log(Matrix.fromArray(row));
-            matrix.setRow(i, Matrix.fromArray([row]));
+            matrix.setRow(i, row);
         }
         return matrix;
     };
@@ -374,7 +368,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     Matrix.prototype.inv = function () {
         // inverse
         (0, assert_1.strict)(this.isSquare(), "Matrix must be square");
-        (0, assert_1.strict)(this.det() !== 0, "Matrix is singular");
+        (0, assert_1.strict)(!this.isSingular(), "Matrix is singular");
         return this.adjoint().multiply(1.0 / this.det());
     };
     Matrix.prototype.transpose = function () {
@@ -400,13 +394,13 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         return matrix;
     };
     Matrix.prototype.addRow = function (row) {
-        (0, assert_1.strict)((row instanceof Matrix ? row.arr[0] : row).length === this.ncols, "New row must have the same number of columns");
+        (0, assert_1.strict)(row.length === this.ncols, "New row must have the same number of columns");
         this.arr.push((row instanceof Matrix ? row.arr[0] : row));
         this.nrows++;
         return this;
     };
     Matrix.prototype.addColumn = function (column) {
-        (0, assert_1.strict)((column instanceof Matrix ? column.arr : column).length === this.nrows, "New column must have the same number of rows");
+        (0, assert_1.strict)(column.length === this.nrows, "New column must have the same number of rows");
         for (var i = 0; i < this.nrows; i++) {
             var value = (column instanceof Matrix ? column.get(i, 0) : column[i][0]);
             this.arr[i].push(value);
