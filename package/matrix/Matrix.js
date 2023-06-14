@@ -158,7 +158,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     };
     Matrix.prototype.add = function (M) {
         // Check that both matrices have the same size
-        (0, assert_1.strict)(this.size()[0] === M.size()[0] && this.size()[1] === M.size()[1], "Matrices must have the same size");
+        (0, assert_1.strict)(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
         // Create a copy of this matrix
         var result = Matrix.fromMatrix(M);
         // Now add
@@ -171,7 +171,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     };
     Matrix.prototype.sub = function (M) {
         // Check that both matrices have the same size
-        (0, assert_1.strict)(this.size()[0] === M.size()[0] && this.size()[1] === M.size()[1], "Matrices must have the same size");
+        (0, assert_1.strict)(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
         // Create a copy of this matrix
         var result = Matrix.fromMatrix(M);
         // Now add
@@ -237,6 +237,9 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         return matrix;
     };
     Matrix.prototype.size = function () {
+        return this.shape()[0] * this.shape()[1];
+    };
+    Matrix.prototype.shape = function () {
         return [this.nrows, this.ncols];
     };
     Matrix.prototype.det = function () {
@@ -440,6 +443,77 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         }
         this.arr = arr;
         return this;
+    };
+    Matrix.prototype.apply = function (callback) {
+        this.map(callback);
+        return this;
+    };
+    Matrix.arange = function (start, end, step) {
+        (0, assert_1.strict)(start > 0 && end > 0, "Invalid range");
+        (0, assert_1.strict)(end > start, "Invalid range");
+        (0, assert_1.strict)(step > 0, "Invalid step");
+        // calculate number of elements
+        var n = (end - start) / step;
+        var matrix = Matrix.zeros(1, n);
+        for (var i = 0; i < n; i++) {
+            matrix.set(0, i, start + step * i);
+        }
+        return matrix;
+    };
+    Matrix.linspace = function (start, end, N) {
+        (0, assert_1.strict)(start > 0 && end > 0, "Invalid range");
+        (0, assert_1.strict)(end > start, "Invalid range");
+        (0, assert_1.strict)(N > 0, "Invalid number of elements");
+        // calculate step
+        var step = (end - start) / (N - 1);
+        // calculate number of elements
+        var matrix = Matrix.zeros(1, N);
+        for (var i = 0; i < N; i++) {
+            matrix.set(0, i, start + step * i);
+        }
+        return matrix;
+    };
+    Matrix.prototype.reshape = function (shape) {
+        (0, assert_1.strict)(Array.isArray(shape), "Invalid shape");
+        (0, assert_1.strict)(shape.length > 1, "New shape must contain at least 2 dimensions");
+        // Check if shape if valid
+        var expectedNElements = shape.reduce(function (total, dim) { return total = total * dim; }, 1);
+        var nElements = this.shape()[0] * this.shape()[1];
+        (0, assert_1.strict)(nElements === expectedNElements, "New shape is impossible");
+        // First, put all elements from this matrix into a vector/flattened matrix
+        var flattened = this.flatten();
+        // Now, create the new matrix and insert the values
+        var matrix = Matrix.zeros(shape[0], shape[1]);
+        var count = 0;
+        for (var i = 0; i < matrix.nrows; i++) {
+            for (var j = 0; j < matrix.ncols; j++) {
+                matrix.set(i, j, flattened.get(0, count++));
+            }
+        }
+        return matrix;
+    };
+    Matrix.prototype.flatten = function () {
+        // Create new matrix of 1 row and N columns where N is equal to the number of elements in the matrix
+        var matrix = Matrix.zeros(1, this.size());
+        var n = 0;
+        for (var i = 0; i < this.nrows; i++) {
+            for (var j = 0; j < this.ncols; j++) {
+                matrix.set(0, n, this.get(i, j));
+                n++;
+            }
+        }
+        return matrix;
+    };
+    Matrix.prototype.ravel = function () {
+        return this.flatten();
+    };
+    Matrix.prototype.diag = function () {
+        // Return an array with the diagonal elements
+        var diagonal = [];
+        for (var i = 0; i < this.ncols; i++) {
+            diagonal.push(this.get(i, i));
+        }
+        return diagonal;
     };
     Matrix.MIN_DET = 1e-9;
     return Matrix;

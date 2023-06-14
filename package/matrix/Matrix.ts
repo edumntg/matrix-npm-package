@@ -290,7 +290,7 @@ export class Matrix {
     }
 
     size(): number {
-        return this.shape[0]*this.shape[1];
+        return this.shape()[0]*this.shape()[1];
     }
 
     shape(): number[] {
@@ -538,6 +538,97 @@ export class Matrix {
         }
         this.arr = arr;
         return this;
+    }
+
+    apply(callback: (x: number) => number): Matrix {
+        this.map(callback);
+        return this;
+    }
+
+    static arange(start: number, end: number, step: number): Matrix {
+        assert(start > 0 && end > 0, "Invalid range");
+        assert(end > start, "Invalid range");
+        assert(step > 0, "Invalid step");
+
+        // calculate number of elements
+        let n =(end - start) / step;
+        let matrix = Matrix.zeros(1, n);
+        for(let i = 0; i < n; i++) {
+            matrix.set(0, i, start + step*i);
+        }
+
+        return matrix;
+    }
+
+    static linspace(start: number, end: number, N: number): Matrix {
+        assert(start > 0 && end > 0, "Invalid range");
+        assert(end > start, "Invalid range");
+        assert(N > 0, "Invalid number of elements");
+
+        // calculate step
+        let step = (end - start) / (N - 1);
+
+        // calculate number of elements
+        let matrix = Matrix.zeros(1, N);
+        for(let i = 0; i < N; i++) {
+            matrix.set(0, i, start + step*i);
+        }
+
+        return matrix;
+    }
+
+    reshape(shape: number[]): Matrix {
+        assert(Array.isArray(shape), "Invalid shape");
+        assert(shape.length > 1, "New shape must contain at least 2 dimensions");
+
+        // Check if shape if valid
+        let expectedNElements: number = shape.reduce((total, dim) => total = total * dim, 1);
+        let nElements: number = this.shape()[0] * this.shape()[1];
+
+        assert(nElements === expectedNElements, "New shape is impossible");
+
+        // First, put all elements from this matrix into a vector/flattened matrix
+        let flattened: Matrix = this.flatten();
+
+        // Now, create the new matrix and insert the values
+        let matrix: Matrix = Matrix.zeros(shape[0], shape[1]);
+        let count: number = 0;
+
+        for(let i  = 0; i < matrix.nrows; i++) {
+            for(let j = 0; j < matrix.ncols; j++) {
+                matrix.set(i, j, flattened.get(0, count++));
+            }
+        }
+        return matrix;
+    }
+
+    flatten(): Matrix {
+        // Create new matrix of 1 row and N columns where N is equal to the number of elements in the matrix
+        let matrix = Matrix.zeros(1, this.size());
+        let n = 0;
+        for(let i = 0; i < this.nrows; i++) {
+            for(let j = 0; j < this.ncols; j++) {
+                matrix.set(0, n, this.get(i,j));
+                n++;
+            }
+        }
+
+        return matrix;
+    }
+
+    ravel(): Matrix {
+        return this.flatten();
+    }
+
+    diag(): number[] {
+        // Return an array with the diagonal elements
+        let diagonal: number[] = [];
+        for(let i = 0; i < this.ncols; i++) {
+            diagonal.push(this.get(i,i));
+        }
+
+        return diagonal;
+
     }
 
 }
