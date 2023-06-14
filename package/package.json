@@ -1,6 +1,6 @@
 {
   "name": "js-mat",
-  "version": "1.3.9",
+  "version": "1.4.1",
   "description": "JavaScript library for Matrix representation",
   "main": "index.js",
   "scripts": {

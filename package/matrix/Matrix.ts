@@ -81,7 +81,7 @@ export class Matrix {
         return matrix;
     }
 
-    ones(rows: number, columns: number): Matrix {
+    static ones(rows: number, columns: number): Matrix {
         // create a matrix of zeros
         let matrix: Matrix = Matrix.zeros(rows, columns);
         // Fill with 1

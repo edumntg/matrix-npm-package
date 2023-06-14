@@ -73,7 +73,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         }
         return matrix;
     };
-    Matrix.prototype.ones = function (rows, columns) {
+    Matrix.ones = function (rows, columns) {
         // create a matrix of zeros
         var matrix = Matrix.zeros(rows, columns);
         // Fill with 1
