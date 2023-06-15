@@ -405,7 +405,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     Matrix.prototype.addColumn = function (column) {
         (0, assert_1.strict)(column.length === this.nrows, "New column must have the same number of rows");
         for (var i = 0; i < this.nrows; i++) {
-            var value = (column instanceof Matrix ? column.get(i, 0) : column[i][0]);
+            var value = column[i];
             this.arr[i].push(value);
         }
         this.ncols++;
@@ -514,6 +514,19 @@ var Matrix = exports.Matrix = /** @class */ (function () {
             diagonal.push(this.get(i, i));
         }
         return diagonal;
+    };
+    Matrix.prototype.max = function () {
+        if (this.nrows === 1) {
+            return Math.max.apply(Math, this.arr[0]);
+        }
+        var max_val = this.get(0, 0);
+        for (var i = 0; i < this.nrows; i++) {
+            var this_max = Math.max.apply(Math, this.getRow(i));
+            if (this_max > max_val) {
+                max_val = this_max;
+            }
+        }
+        return max_val;
     };
     Matrix.MIN_DET = 1e-9;
     return Matrix;

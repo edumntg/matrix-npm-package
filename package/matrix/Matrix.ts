@@ -491,7 +491,7 @@ export class Matrix {
     addColumn(column: number | number[]): Matrix {
         assert((column as number[]).length === this.nrows, "New column must have the same number of rows");
         for(let i = 0; i < this.nrows; i++) {
-            let value: number = (column instanceof Matrix ? column.get(i, 0) : column[i][0]);
+            let value: number = column[i];
             (this.arr[i] as number[]).push(value);
         }
         this.ncols++;
@@ -629,6 +629,21 @@ export class Matrix {
 
         return diagonal;
 
+    }
+
+    max(): number {
+        if(this.nrows === 1) {
+            return Math.max(...(this.arr[0] as number[]));
+        }
+        let max_val = this.get(0,0);
+        for(let i = 0; i < this.nrows; i++) {
+            let this_max = Math.max(...(this.getRow(i) as number[]));
+            if(this_max > max_val) {
+                max_val = this_max;
+            }
+        }
+        
+        return max_val;
     }
 
 }
