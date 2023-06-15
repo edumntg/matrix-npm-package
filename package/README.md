@@ -212,5 +212,5 @@ And more matrix operations including:
 * diag: ```M.diag()```
 
 # Examples
-* [Solve a system of linear equations using Least Squares method]("https://github.com/edumntg/matrix-npm-package/blob/main/package/examples/least_squares.js")
-* [Find the roots of a system of equations using Newton-Raphson method]("https://github.com/edumntg/matrix-npm-package/blob/main/package/examples/newton_raphson.js")
+* [Solve a system of linear equations using Least Squares method](https://github.com/edumntg/matrix-npm-package/blob/main/package/examples/least_squares.js)
+* [Find the roots of a system of equations using Newton-Raphson method](https://github.com/edumntg/matrix-npm-package/blob/main/package/examples/newton_raphson.js)
