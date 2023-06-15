@@ -28,7 +28,7 @@ var I = Matrix.eye(4); // identity matrix of size 4x4
 
 Create a matrix from a 2D array:
 ```
-var M = Matrix([
+var M = new Matrix([
     [1,2,3],
     [4,5,6],
     [7,8,9]
@@ -38,17 +38,17 @@ var M = Matrix([
 Create a matrix from another matrix
 ```
 var M1 = Matrix.rand(3,6);
-var M2 = Matrix(M1); // equal to M1
+var M2 = new Matrix(M1); // equal to M1
 ```
 
 # Operations
 Addition:
 ```
-var M1 = Matrix([
+var M1 = new Matrix([
     [12,7,9],
     [5,-2,3]
 ]);
-var M2 = Matrix([
+var M2 = new Matrix([
     [-3.6, 0, 5.4],
     [-12,-2,7]
 ]);
@@ -60,11 +60,11 @@ var result = M1.add(M2);
 
 Substraction:
 ```
-var M1 = Matrix([
+var M1 = new Matrix([
     [12,7,9],
     [5,-2,3]
 ]);
-var M2 = Matrix([
+var M2 = new Matrix([
     [-3.6, 0, 5.4],
     [-12,-2,7]
 ]);
@@ -77,12 +77,12 @@ var result = M1.subs(M2);
 Multiplication:
 ```
 // Multiply two matrices
-var M1 = Matrix([
+var M1 = new Matrix([
     [1, 2, 9],
     [-3, 7, 1]
 ]);
 
-var M2 = Matrix([
+var M2 = new Matrix([
     [-5, 1],
     [3, 12],
     [1, 1]
@@ -95,7 +95,7 @@ var result = M1.multiply(M2);
 
 ```
 // Multiply a matrix by a constant
-var M1 = Matrix([
+var M1 = new Matrix([
     [1, 2, 9],
     [-3, 7, 1]
 ]);
@@ -210,3 +210,7 @@ And more matrix operations including:
 * reshape: ```M.reshape([2,3])```
 * flatten/ravel: ```M.flatten(), M.ravel()```
 * diag: ```M.diag()```
+
+# Examples
+* [Solve a system of linear equations using Least Squares method]("https://github.com/edumntg/matrix-npm-package/blob/main/package/examples/least_squares.js")
+* [Find the roots of a system of equations using Newton-Raphson method]("https://github.com/edumntg/matrix-npm-package/blob/main/package/examples/newton_raphson.js")
