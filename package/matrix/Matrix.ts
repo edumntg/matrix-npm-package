@@ -56,12 +56,12 @@ export class Matrix {
 
     static rand(rows, columns): Matrix {
         // Create empty array
-        let arr: Array<number> = [];
+        let arr: Array<number[]> = [];
         // fill with rows of random values
-        let row;
+        let row: number[];
         for(let i = 0; i < rows; i++) {
             row = Array.from({length: columns}, () => Math.random());
-            arr.push(row.slice());
+            arr.push(row);
         }
         // Now create matrix
         return Matrix.fromArray(arr);
@@ -188,7 +188,7 @@ export class Matrix {
         assert(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
 
         // Create a copy of this matrix
-        let result = Matrix.fromMatrix(M);
+        let result: Matrix = Matrix.fromMatrix(M);
         
         // Now add
         for(let i = 0; i < this.nrows; i++) {
@@ -205,7 +205,7 @@ export class Matrix {
         assert(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
 
         // Create a copy of this matrix
-        let result = Matrix.fromMatrix(M);
+        let result: Matrix = Matrix.fromMatrix(M);
         
         // Now add
         for(let i = 0; i < this.nrows; i++) {
@@ -392,7 +392,7 @@ export class Matrix {
 
     minor(i: number, j: number): number {
         // Create a copy of the matrix
-        let matrix = Matrix.fromMatrix(this);
+        let matrix: Matrix = Matrix.fromMatrix(this);
         // Delete the given row and column
         matrix.deleteRow(i);
         matrix.deleteColumn(j);
@@ -408,7 +408,7 @@ export class Matrix {
 
     cof(): Matrix {
         // Generate an empty matrix
-        let matrix = Matrix.zeros(this.nrows, this.ncols);
+        let matrix: Matrix = Matrix.zeros(this.nrows, this.ncols);
         for(let i = 0; i < this.nrows; i++) {
             let row: Array<number> = [];
             for(let j = 0; j < this.ncols; j++) {
@@ -470,7 +470,7 @@ export class Matrix {
 
     abs(): Matrix {
         // Return the same matrix but with all positive values
-        let matrix = Matrix.fromMatrix(this);
+        let matrix: Matrix = Matrix.fromMatrix(this);
 
         for(let i = 0; i < this.nrows; i++) {
             for(let j = 0; j < this.ncols; j++) {
@@ -503,7 +503,7 @@ export class Matrix {
         assert(this.nrows === M.nrows, "Both matrices must have the same number of rows for horizontal concatenation");
         
         // Create a copy of the current matrix
-        let matrix = Matrix.fromMatrix(this);
+        let matrix: Matrix = Matrix.fromMatrix(this);
         // Now add the columns of the other matrix
         for(let i = 0; i < M.ncols; i++) {
             matrix.addColumn(M.getColumn(i));
@@ -516,7 +516,7 @@ export class Matrix {
         assert(this.ncols === M.ncols, "Both matrices must have the same number of columns for vertical concatenation");
         
         // Create a copy of the current matrix
-        let matrix = Matrix.fromMatrix(this);
+        let matrix: Matrix = Matrix.fromMatrix(this);
         // Now add the rows of the other matrix
         for(let i = 0; i < M.nrows; i++) {
             matrix.addRow(M.getRow(i));
@@ -551,8 +551,8 @@ export class Matrix {
         assert(step > 0, "Invalid step");
 
         // calculate number of elements
-        let n =(end - start) / step;
-        let matrix = Matrix.zeros(1, n);
+        let n: number = (end - start) / step;
+        let matrix: Matrix = Matrix.zeros(1, n);
         for(let i = 0; i < n; i++) {
             matrix.set(0, i, start + step*i);
         }
@@ -566,10 +566,10 @@ export class Matrix {
         assert(N > 0, "Invalid number of elements");
 
         // calculate step
-        let step = (end - start) / (N - 1);
+        let step: number = (end - start) / (N - 1);
 
         // calculate number of elements
-        let matrix = Matrix.zeros(1, N);
+        let matrix: Matrix = Matrix.zeros(1, N);
         for(let i = 0; i < N; i++) {
             matrix.set(0, i, start + step*i);
         }
@@ -604,7 +604,7 @@ export class Matrix {
 
     flatten(): Matrix {
         // Create new matrix of 1 row and N columns where N is equal to the number of elements in the matrix
-        let matrix = Matrix.zeros(1, this.size());
+        let matrix: Matrix = Matrix.zeros(1, this.size());
         let n = 0;
         for(let i = 0; i < this.nrows; i++) {
             for(let j = 0; j < this.ncols; j++) {
@@ -635,9 +635,9 @@ export class Matrix {
         if(this.nrows === 1) {
             return Math.max(...(this.arr[0] as number[]));
         }
-        let max_val = this.get(0,0);
+        let max_val: number = this.get(0,0);
         for(let i = 0; i < this.nrows; i++) {
-            let this_max = Math.max(...(this.getRow(i) as number[]));
+            let this_max: number = Math.max(...(this.getRow(i) as number[]));
             if(this_max > max_val) {
                 max_val = this_max;
             }
@@ -645,5 +645,4 @@ export class Matrix {
         
         return max_val;
     }
-
 }
