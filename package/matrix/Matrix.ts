@@ -561,7 +561,6 @@ export class Matrix {
     }
 
     static linspace(start: number, end: number, N: number): Matrix {
-        assert(start > 0 && end > 0, "Invalid range");
         assert(end > start, "Invalid range");
         assert(N > 0, "Invalid number of elements");
 

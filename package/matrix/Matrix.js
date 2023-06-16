@@ -58,7 +58,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         var row;
         for (var i = 0; i < rows; i++) {
             row = Array.from({ length: columns }, function () { return Math.random(); });
-            arr.push(row.slice());
+            arr.push(row);
         }
         // Now create matrix
         return Matrix.fromArray(arr);
@@ -461,7 +461,6 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         return matrix;
     };
     Matrix.linspace = function (start, end, N) {
-        (0, assert_1.strict)(start > 0 && end > 0, "Invalid range");
         (0, assert_1.strict)(end > start, "Invalid range");
         (0, assert_1.strict)(N > 0, "Invalid number of elements");
         // calculate step
