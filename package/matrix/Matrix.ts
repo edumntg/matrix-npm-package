@@ -4,7 +4,7 @@ export class Matrix {
     arr: Array<number | number[]>;
     nrows: number;
     ncols: number;
-    static MIN_DET: number = 1e-9;
+    static MIN_DET: number = 1e-9; // Min. value of a matrix's determinant to be considered singular
 
     constructor(m: null | Matrix | Array<number> | Array<Array<number>>) {
         if(m instanceof Matrix) {
@@ -54,80 +54,6 @@ export class Matrix {
         return this.det() <= Matrix.MIN_DET;
     }
 
-    static rand(rows, columns): Matrix {
-        // Create empty array
-        let arr: Array<number[]> = [];
-        // fill with rows of random values
-        let row: number[];
-        for(let i = 0; i < rows; i++) {
-            row = Array.from({length: columns}, () => Math.random());
-            arr.push(row);
-        }
-        // Now create matrix
-        return Matrix.fromArray(arr);
-    }
-
-    static zeros(rows: number, columns: number): Matrix {
-        let matrix: Matrix = new Matrix(null);
-        matrix.nrows = rows;
-        matrix.ncols = columns;
-
-        let row: Array<number> = new Array(columns).fill(0);
-
-        for(let i = 0; i < rows; i++) {
-            matrix.arr.push(row.slice())
-        }
-
-        return matrix;
-    }
-
-    static ones(rows: number, columns: number): Matrix {
-        // create a matrix of zeros
-        let matrix: Matrix = Matrix.zeros(rows, columns);
-        // Fill with 1
-        for(let i = 0; i < rows; i++) {
-            for(let j = 0; j < columns; j++) {
-                matrix.set(i, j, 1);
-            }
-        }
-
-        return matrix;
-    }
-
-    static fromArray(arr: Array<number | number[]>): Matrix {
-        assert(Array.isArray(arr), "Argument must be of array type");
-
-        // get size
-        let rows: number = arr.length;
-        let columns: number = Array.isArray(arr[0]) ? arr[0].length : 1;
-
-        // Now, create a new matrix and set parameters
-        let matrix: Matrix = new Matrix(null);
-        matrix.arr = arr;
-        matrix.nrows = rows;
-        matrix.ncols = columns;
-
-        return matrix;
-    }
-
-    static fromMatrix(m: Matrix): Matrix{
-        // get size of matrix
-        let rows: number = m.nrows;
-        let columns: number = m.ncols;
-
-        // Create an empty matrix
-        let matrix: Matrix = Matrix.zeros(rows, columns);
-
-        // Fill
-        for(let i = 0; i < rows; i++) {
-            for(let j = 0; j < columns; j++) {
-                matrix.set(i,j, m.get(i,j));
-            }
-        }
-
-        return matrix;
-    }
-
     multiply(param: Matrix | number): Matrix | null | number {
         if(param instanceof Matrix) {
             return this.matmul(param);
@@ -146,7 +72,7 @@ export class Matrix {
         let rows2: number  = m.nrows;
         let cols2: number  = m.ncols;
     
-        assert(cols1 === rows2, "Invalid matrices dimensions");
+        assert(cols1 === rows2, `Invalid matrices dimensions. Got [${this.shape}]x[${m.shape}]`);
     
         // Create empty matrix to store result
         let matrix: Matrix = Matrix.zeros(rows1, cols2);
@@ -161,11 +87,6 @@ export class Matrix {
         }
     
         return matrix;
-    }
-
-    static row_kmatmul(row: number | number[], k: number): number[] {
-        let arr: Array<number> = (row as number[]).map(x => (x as number) * k);
-        return arr;
     }
 
     kmatmul(k: number): Matrix {
@@ -185,7 +106,7 @@ export class Matrix {
 
     add(M: Matrix): Matrix {
         // Check that both matrices have the same size
-        assert(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
+        assert(this.shape[0] === M.shape[0] && this.shape[1] === M.shape[1], "Matrices must have the same shape");
 
         // Create a copy of this matrix
         let result: Matrix = Matrix.fromMatrix(M);
@@ -202,11 +123,11 @@ export class Matrix {
 
     sub(M: Matrix): Matrix {
         // Check that both matrices have the same size
-        assert(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
+        assert(this.shape[0] === M.shape[0] && this.shape[1] === M.shape[1], "Matrices must have the same shape");
 
         // Create a copy of this matrix
         let result: Matrix = Matrix.fromMatrix(M);
-        
+
         // Now add
         for(let i = 0; i < this.nrows; i++) {
             for(let j = 0; j < this.ncols; j++) {
@@ -216,7 +137,15 @@ export class Matrix {
 
         return result;
     }
-    
+
+    subtract(M: Matrix) {
+        return this.sub(M);
+    }
+
+    diff(M: Matrix): Matrix {
+        return this.sub(M);
+    }
+
     getRow(rowIndex: number): number | number[] {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
         return this.arr[rowIndex];
@@ -275,25 +204,11 @@ export class Matrix {
         return this.arr[row][column];
     }
 
-    static eye(size: number): Matrix {
-        assert(typeof(size) === 'number' && size > 0, "Param argument must be a positive number");
-
-        // Create an empty matrix filled with zeros
-        let matrix: Matrix = Matrix.zeros(size, size);
-
-        // Fill diagonal
-        for(let i = 0; i < size; i++) {
-            matrix.set(i,i,1);
-        }
-
-        return matrix;
-    }
-
     size(): number {
-        return this.shape()[0]*this.shape()[1];
+        return this.shape[0]*this.shape[1];
     }
 
-    shape(): number[] {
+    get shape(): number[] {
         return [this.nrows, this.ncols];
     }
 
@@ -366,7 +281,7 @@ export class Matrix {
         return [L, U];
     }
 
-    deleteRow(rowIndex): Matrix {
+    deleteRow(rowIndex: number): Matrix {
         assert(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
 
         this.arr.splice(rowIndex, 1);
@@ -375,7 +290,7 @@ export class Matrix {
         return this;
     }
 
-    deleteColumn(columnIndex): Matrix {
+    deleteColumn(columnIndex: number): Matrix {
         assert(columnIndex >= 0 && columnIndex < this.ncols, "Invalid column index");
         let arr: Array<number[] | number> = [];
         for(let i = 0; i < this.nrows; i++) {
@@ -442,7 +357,7 @@ export class Matrix {
     }
 
     adj(): Matrix { 
-        return this.cof().T();
+        return this.cof().T;
     }
 
     inv(): Matrix | number | null {
@@ -464,7 +379,7 @@ export class Matrix {
         return transposed;
     }
 
-    T(): Matrix {
+    get T(): Matrix {
         return this.transpose();
     }
 
@@ -545,44 +460,13 @@ export class Matrix {
         return this;
     }
 
-    static arange(start: number, end: number, step: number): Matrix {
-        assert(start > 0 && end > 0, "Invalid range");
-        assert(end > start, "Invalid range");
-        assert(step > 0, "Invalid step");
-
-        // calculate number of elements
-        let n: number = (end - start) / step;
-        let matrix: Matrix = Matrix.zeros(1, n);
-        for(let i = 0; i < n; i++) {
-            matrix.set(0, i, start + step*i);
-        }
-
-        return matrix;
-    }
-
-    static linspace(start: number, end: number, N: number): Matrix {
-        assert(end > start, "Invalid range");
-        assert(N > 0, "Invalid number of elements");
-
-        // calculate step
-        let step: number = (end - start) / (N - 1);
-
-        // calculate number of elements
-        let matrix: Matrix = Matrix.zeros(1, N);
-        for(let i = 0; i < N; i++) {
-            matrix.set(0, i, start + step*i);
-        }
-
-        return matrix;
-    }
-
     reshape(shape: number[]): Matrix {
         assert(Array.isArray(shape), "Invalid shape");
         assert(shape.length > 1, "New shape must contain at least 2 dimensions");
 
-        // Check if shape if valid
+        // Check if shape is valid
         let expectedNElements: number = shape.reduce((total, dim) => total = total * dim, 1);
-        let nElements: number = this.shape()[0] * this.shape()[1];
+        let nElements: number = this.shape[0] * this.shape[1];
 
         assert(nElements === expectedNElements, "New shape is impossible");
 
@@ -643,5 +527,172 @@ export class Matrix {
         }
         
         return max_val;
+    }
+
+    norm(): number {
+        // Returns the Frobenius norm of the matrix
+        let norm: number = 0.0;
+        for(let i = 0; i < this.shape[0]; i++) {
+            for(let j = 0; j < this.shape[1]; j++) {
+                norm += Math.pow(Math.abs(this.get(i,j)), 2.0)
+            }
+        }
+
+        return Math.sqrt(norm);
+    }
+
+    static rand(rows: number, columns: number): Matrix {
+        // Create empty array
+        let arr: Array<number[]> = [];
+        // fill with rows of random values
+        let row: number[];
+        for(let i = 0; i < rows; i++) {
+            row = Array.from({length: columns}, () => Math.random());
+            arr.push(row);
+        }
+        // Now create matrix
+        return Matrix.fromArray(arr);
+    }
+
+    static zeros(rows: number, columns: number): Matrix {
+        let matrix: Matrix = new Matrix(null);
+        matrix.nrows = rows;
+        matrix.ncols = columns;
+
+        let row: Array<number> = new Array(columns).fill(0);
+
+        for(let i = 0; i < rows; i++) {
+            matrix.arr.push(row.slice())
+        }
+
+        return matrix;
+    }
+
+    static ones(rows: number, columns: number): Matrix {
+        // create a matrix of zeros
+        let matrix: Matrix = Matrix.zeros(rows, columns);
+        // Fill with 1
+        for(let i = 0; i < rows; i++) {
+            for(let j = 0; j < columns; j++) {
+                matrix.set(i, j, 1);
+            }
+        }
+
+        return matrix;
+    }
+
+    static fromArray(arr: Array<number | number[]>): Matrix {
+        assert(Array.isArray(arr), "Argument must be of array type");
+
+        // get size
+        let rows: number = arr.length;
+        let columns: number = Array.isArray(arr[0]) ? arr[0].length : 1;
+
+        // Now, create a new matrix and set parameters
+        let matrix: Matrix = new Matrix(null);
+        matrix.arr = arr;
+        matrix.nrows = rows;
+        matrix.ncols = columns;
+
+        return matrix;
+    }
+
+    static fromMatrix(m: Matrix): Matrix{
+        // get size of matrix
+        let rows: number = m.nrows;
+        let columns: number = m.ncols;
+
+        // Create an empty matrix
+        let matrix: Matrix = Matrix.zeros(rows, columns);
+
+        // Fill
+        for(let i = 0; i < rows; i++) {
+            for(let j = 0; j < columns; j++) {
+                matrix.set(i,j, m.get(i,j));
+            }
+        }
+
+        return matrix;
+    }
+
+    static norm(M: Matrix): number {
+        // Returns the Frobenius norm of the matrix
+        let norm: number = 0.0;
+        for(let i = 0; i < M.shape[0]; i++) {
+            for(let j = 0; j < M.shape[1]; j++) {
+                norm += Math.pow(Math.abs(M.get(i,j)), 2.0)
+            }
+        }
+
+        return Math.sqrt(norm);
+    }
+
+    static arange(start: number, end: number, step: number): Matrix {
+        assert(start > 0 && end > 0, "Invalid range");
+        assert(end > start, "Invalid range");
+        assert(step > 0, "Invalid step");
+
+        // calculate number of elements
+        let n: number = (end - start) / step;
+        let matrix: Matrix = Matrix.zeros(1, n);
+        for(let i = 0; i < n; i++) {
+            matrix.set(0, i, start + step*i);
+        }
+
+        return matrix;
+    }
+
+    static linspace(start: number, end: number, N: number): Matrix {
+        assert(end > start, "Invalid range");
+        assert(N > 0, "Invalid number of elements");
+
+        // calculate step
+        let step: number = (end - start) / (N - 1);
+
+        // calculate number of elements
+        let matrix: Matrix = Matrix.zeros(1, N);
+        for(let i = 0; i < N; i++) {
+            matrix.set(0, i, start + step*i);
+        }
+
+        return matrix;
+    }
+
+    static eye(size: number): Matrix {
+        assert(typeof(size) === 'number' && size > 0, "Param argument must be a positive number");
+
+        // Create an empty matrix filled with zeros
+        let matrix: Matrix = Matrix.zeros(size, size);
+
+        // Fill diagonal
+        for(let i = 0; i < size; i++) {
+            matrix.set(i,i,1);
+        }
+
+        return matrix;
+    }
+
+    static row_kmatmul(row: number | number[], k: number): number[] {
+        return (row as number[]).map(x => (x as number) * k);
+    }
+
+    *iterrows(as_matrix = false) {
+        for(let i = 0; i < this.nrows; i++) {
+            let row: number | number[] | Matrix = this.getRow(i);
+            if(as_matrix) {
+                row = new Matrix((row as number[]));
+            }
+            yield row;
+        }
+    }
+
+    *itercolumns(as_matrix = false) {
+        for(let i = 0; i < this.ncols; i++) {
+            let column: number | number[] | Matrix = this.getColumn(i);
+            if(as_matrix) {
+                column = new Matrix((column as number[]));
+            }
+            yield column;
+        }
     }
 }

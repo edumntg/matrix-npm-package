@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "tsc ./package/matrix/Matrix.ts & jest",
+    "build": "tsc ./package/matrix/Matrix.ts"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.[t|j]sx?$": "babel-jest"
+    }
+  }
+}

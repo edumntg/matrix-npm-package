@@ -1,10 +1,10 @@
 {
   "name": "js-mat",
-  "version": "1.4.9",
+  "version": "1.5.0",
   "description": "JavaScript library for Matrix representation",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc ./package/matrix/Matrix.ts & jest"
   },
   "repository": {
     "type": "git",

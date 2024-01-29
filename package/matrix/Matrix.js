@@ -1,4 +1,31 @@
 "use strict";
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
         if (ar || !(i in from)) {
@@ -11,7 +38,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Matrix = void 0;
 var assert_1 = require("assert");
-var Matrix = exports.Matrix = /** @class */ (function () {
+var Matrix = /** @class */ (function () {
     function Matrix(m) {
         if (m instanceof Matrix) {
             this.construct_fromM(m);
@@ -51,65 +78,6 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     Matrix.prototype.isSingular = function () {
         return this.det() <= Matrix.MIN_DET;
     };
-    Matrix.rand = function (rows, columns) {
-        // Create empty array
-        var arr = [];
-        // fill with rows of random values
-        var row;
-        for (var i = 0; i < rows; i++) {
-            row = Array.from({ length: columns }, function () { return Math.random(); });
-            arr.push(row);
-        }
-        // Now create matrix
-        return Matrix.fromArray(arr);
-    };
-    Matrix.zeros = function (rows, columns) {
-        var matrix = new Matrix(null);
-        matrix.nrows = rows;
-        matrix.ncols = columns;
-        var row = new Array(columns).fill(0);
-        for (var i = 0; i < rows; i++) {
-            matrix.arr.push(row.slice());
-        }
-        return matrix;
-    };
-    Matrix.ones = function (rows, columns) {
-        // create a matrix of zeros
-        var matrix = Matrix.zeros(rows, columns);
-        // Fill with 1
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                matrix.set(i, j, 1);
-            }
-        }
-        return matrix;
-    };
-    Matrix.fromArray = function (arr) {
-        (0, assert_1.strict)(Array.isArray(arr), "Argument must be of array type");
-        // get size
-        var rows = arr.length;
-        var columns = Array.isArray(arr[0]) ? arr[0].length : 1;
-        // Now, create a new matrix and set parameters
-        var matrix = new Matrix(null);
-        matrix.arr = arr;
-        matrix.nrows = rows;
-        matrix.ncols = columns;
-        return matrix;
-    };
-    Matrix.fromMatrix = function (m) {
-        // get size of matrix
-        var rows = m.nrows;
-        var columns = m.ncols;
-        // Create an empty matrix
-        var matrix = Matrix.zeros(rows, columns);
-        // Fill
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                matrix.set(i, j, m.get(i, j));
-            }
-        }
-        return matrix;
-    };
     Matrix.prototype.multiply = function (param) {
         if (param instanceof Matrix) {
             return this.matmul(param);
@@ -128,7 +96,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         var cols1 = this.ncols;
         var rows2 = m.nrows;
         var cols2 = m.ncols;
-        (0, assert_1.strict)(cols1 === rows2, "Invalid matrices dimensions");
+        (0, assert_1.strict)(cols1 === rows2, "Invalid matrices dimensions. Got [".concat(this.shape, "]x[").concat(m.shape, "]"));
         // Create empty matrix to store result
         var matrix = Matrix.zeros(rows1, cols2);
         // Now, multiply
@@ -140,10 +108,6 @@ var Matrix = exports.Matrix = /** @class */ (function () {
             }
         }
         return matrix;
-    };
-    Matrix.row_kmatmul = function (row, k) {
-        var arr = row.map(function (x) { return x * k; });
-        return arr;
     };
     Matrix.prototype.kmatmul = function (k) {
         console.assert(typeof (k) === 'number', "Argument must be a constant");
@@ -158,7 +122,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     };
     Matrix.prototype.add = function (M) {
         // Check that both matrices have the same size
-        (0, assert_1.strict)(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
+        (0, assert_1.strict)(this.shape[0] === M.shape[0] && this.shape[1] === M.shape[1], "Matrices must have the same shape");
         // Create a copy of this matrix
         var result = Matrix.fromMatrix(M);
         // Now add
@@ -171,7 +135,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
     };
     Matrix.prototype.sub = function (M) {
         // Check that both matrices have the same size
-        (0, assert_1.strict)(this.shape()[0] === M.shape()[0] && this.shape()[1] === M.shape()[1], "Matrices must have the same shape");
+        (0, assert_1.strict)(this.shape[0] === M.shape[0] && this.shape[1] === M.shape[1], "Matrices must have the same shape");
         // Create a copy of this matrix
         var result = Matrix.fromMatrix(M);
         // Now add
@@ -181,6 +145,12 @@ var Matrix = exports.Matrix = /** @class */ (function () {
             }
         }
         return result;
+    };
+    Matrix.prototype.subtract = function (M) {
+        return this.sub(M);
+    };
+    Matrix.prototype.diff = function (M) {
+        return this.sub(M);
     };
     Matrix.prototype.getRow = function (rowIndex) {
         (0, assert_1.strict)(rowIndex >= 0 && rowIndex < this.nrows, "Invalid row index");
@@ -226,22 +196,16 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         (0, assert_1.strict)(typeof (column) === 'number' && column >= 0 && column < this.ncols, "Invalid column index");
         return this.arr[row][column];
     };
-    Matrix.eye = function (size) {
-        (0, assert_1.strict)(typeof (size) === 'number' && size > 0, "Param argument must be a positive number");
-        // Create an empty matrix filled with zeros
-        var matrix = Matrix.zeros(size, size);
-        // Fill diagonal
-        for (var i = 0; i < size; i++) {
-            matrix.set(i, i, 1);
-        }
-        return matrix;
-    };
     Matrix.prototype.size = function () {
-        return this.shape()[0] * this.shape()[1];
+        return this.shape[0] * this.shape[1];
     };
-    Matrix.prototype.shape = function () {
-        return [this.nrows, this.ncols];
-    };
+    Object.defineProperty(Matrix.prototype, "shape", {
+        get: function () {
+            return [this.nrows, this.ncols];
+        },
+        enumerable: false,
+        configurable: true
+    });
     Matrix.prototype.det = function () {
         (0, assert_1.strict)(this.nrows === this.ncols, "Matrix is not square");
         if (this.nrows === 1) {
@@ -366,7 +330,7 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         return matrix;
     };
     Matrix.prototype.adj = function () {
-        return this.cof().T();
+        return this.cof().T;
     };
     Matrix.prototype.inv = function () {
         // inverse
@@ -383,9 +347,13 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         }
         return transposed;
     };
-    Matrix.prototype.T = function () {
-        return this.transpose();
-    };
+    Object.defineProperty(Matrix.prototype, "T", {
+        get: function () {
+            return this.transpose();
+        },
+        enumerable: false,
+        configurable: true
+    });
     Matrix.prototype.abs = function () {
         // Return the same matrix but with all positive values
         var matrix = Matrix.fromMatrix(this);
@@ -448,36 +416,12 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         this.map(callback);
         return this;
     };
-    Matrix.arange = function (start, end, step) {
-        (0, assert_1.strict)(start > 0 && end > 0, "Invalid range");
-        (0, assert_1.strict)(end > start, "Invalid range");
-        (0, assert_1.strict)(step > 0, "Invalid step");
-        // calculate number of elements
-        var n = (end - start) / step;
-        var matrix = Matrix.zeros(1, n);
-        for (var i = 0; i < n; i++) {
-            matrix.set(0, i, start + step * i);
-        }
-        return matrix;
-    };
-    Matrix.linspace = function (start, end, N) {
-        (0, assert_1.strict)(end > start, "Invalid range");
-        (0, assert_1.strict)(N > 0, "Invalid number of elements");
-        // calculate step
-        var step = (end - start) / (N - 1);
-        // calculate number of elements
-        var matrix = Matrix.zeros(1, N);
-        for (var i = 0; i < N; i++) {
-            matrix.set(0, i, start + step * i);
-        }
-        return matrix;
-    };
     Matrix.prototype.reshape = function (shape) {
         (0, assert_1.strict)(Array.isArray(shape), "Invalid shape");
         (0, assert_1.strict)(shape.length > 1, "New shape must contain at least 2 dimensions");
-        // Check if shape if valid
+        // Check if shape is valid
         var expectedNElements = shape.reduce(function (total, dim) { return total = total * dim; }, 1);
-        var nElements = this.shape()[0] * this.shape()[1];
+        var nElements = this.shape[0] * this.shape[1];
         (0, assert_1.strict)(nElements === expectedNElements, "New shape is impossible");
         // First, put all elements from this matrix into a vector/flattened matrix
         var flattened = this.flatten();
@@ -527,6 +471,173 @@ var Matrix = exports.Matrix = /** @class */ (function () {
         }
         return max_val;
     };
-    Matrix.MIN_DET = 1e-9;
+    Matrix.prototype.norm = function () {
+        // Returns the Frobenius norm of the matrix
+        var norm = 0.0;
+        for (var i = 0; i < this.shape[0]; i++) {
+            for (var j = 0; j < this.shape[1]; j++) {
+                norm += Math.pow(Math.abs(this.get(i, j)), 2.0);
+            }
+        }
+        return Math.sqrt(norm);
+    };
+    Matrix.rand = function (rows, columns) {
+        // Create empty array
+        var arr = [];
+        // fill with rows of random values
+        var row;
+        for (var i = 0; i < rows; i++) {
+            row = Array.from({ length: columns }, function () { return Math.random(); });
+            arr.push(row);
+        }
+        // Now create matrix
+        return Matrix.fromArray(arr);
+    };
+    Matrix.zeros = function (rows, columns) {
+        var matrix = new Matrix(null);
+        matrix.nrows = rows;
+        matrix.ncols = columns;
+        var row = new Array(columns).fill(0);
+        for (var i = 0; i < rows; i++) {
+            matrix.arr.push(row.slice());
+        }
+        return matrix;
+    };
+    Matrix.ones = function (rows, columns) {
+        // create a matrix of zeros
+        var matrix = Matrix.zeros(rows, columns);
+        // Fill with 1
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < columns; j++) {
+                matrix.set(i, j, 1);
+            }
+        }
+        return matrix;
+    };
+    Matrix.fromArray = function (arr) {
+        (0, assert_1.strict)(Array.isArray(arr), "Argument must be of array type");
+        // get size
+        var rows = arr.length;
+        var columns = Array.isArray(arr[0]) ? arr[0].length : 1;
+        // Now, create a new matrix and set parameters
+        var matrix = new Matrix(null);
+        matrix.arr = arr;
+        matrix.nrows = rows;
+        matrix.ncols = columns;
+        return matrix;
+    };
+    Matrix.fromMatrix = function (m) {
+        // get size of matrix
+        var rows = m.nrows;
+        var columns = m.ncols;
+        // Create an empty matrix
+        var matrix = Matrix.zeros(rows, columns);
+        // Fill
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < columns; j++) {
+                matrix.set(i, j, m.get(i, j));
+            }
+        }
+        return matrix;
+    };
+    Matrix.norm = function (M) {
+        // Returns the Frobenius norm of the matrix
+        var norm = 0.0;
+        for (var i = 0; i < M.shape[0]; i++) {
+            for (var j = 0; j < M.shape[1]; j++) {
+                norm += Math.pow(Math.abs(M.get(i, j)), 2.0);
+            }
+        }
+        return Math.sqrt(norm);
+    };
+    Matrix.arange = function (start, end, step) {
+        (0, assert_1.strict)(start > 0 && end > 0, "Invalid range");
+        (0, assert_1.strict)(end > start, "Invalid range");
+        (0, assert_1.strict)(step > 0, "Invalid step");
+        // calculate number of elements
+        var n = (end - start) / step;
+        var matrix = Matrix.zeros(1, n);
+        for (var i = 0; i < n; i++) {
+            matrix.set(0, i, start + step * i);
+        }
+        return matrix;
+    };
+    Matrix.linspace = function (start, end, N) {
+        (0, assert_1.strict)(end > start, "Invalid range");
+        (0, assert_1.strict)(N > 0, "Invalid number of elements");
+        // calculate step
+        var step = (end - start) / (N - 1);
+        // calculate number of elements
+        var matrix = Matrix.zeros(1, N);
+        for (var i = 0; i < N; i++) {
+            matrix.set(0, i, start + step * i);
+        }
+        return matrix;
+    };
+    Matrix.eye = function (size) {
+        (0, assert_1.strict)(typeof (size) === 'number' && size > 0, "Param argument must be a positive number");
+        // Create an empty matrix filled with zeros
+        var matrix = Matrix.zeros(size, size);
+        // Fill diagonal
+        for (var i = 0; i < size; i++) {
+            matrix.set(i, i, 1);
+        }
+        return matrix;
+    };
+    Matrix.row_kmatmul = function (row, k) {
+        return row.map(function (x) { return x * k; });
+    };
+    Matrix.prototype.iterrows = function (as_matrix) {
+        var i, row;
+        if (as_matrix === void 0) { as_matrix = false; }
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    i = 0;
+                    _a.label = 1;
+                case 1:
+                    if (!(i < this.nrows)) return [3 /*break*/, 4];
+                    row = this.getRow(i);
+                    if (as_matrix) {
+                        row = new Matrix(row);
+                    }
+                    return [4 /*yield*/, row];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/];
+            }
+        });
+    };
+    Matrix.prototype.itercolumns = function (as_matrix) {
+        var i, column;
+        if (as_matrix === void 0) { as_matrix = false; }
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    i = 0;
+                    _a.label = 1;
+                case 1:
+                    if (!(i < this.ncols)) return [3 /*break*/, 4];
+                    column = this.getColumn(i);
+                    if (as_matrix) {
+                        column = new Matrix(column);
+                    }
+                    return [4 /*yield*/, column];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3:
+                    i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/];
+            }
+        });
+    };
+    Matrix.MIN_DET = 1e-9; // Min. value of a matrix's determinant to be considered singular
     return Matrix;
 }());
+exports.Matrix = Matrix;
